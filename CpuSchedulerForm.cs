@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.DirectoryServices.ActiveDirectory;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Security.Policy;
 using System.Windows.Forms;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace CpuScheduler
 {
@@ -537,7 +541,7 @@ Instructions:
         /// This implementation assigns tickets based on burst time (inverse proportion)
         /// or a dedicated priority field.
         /// </summary>
-        private List<SchedulingResult> RunLotteryScheduling(List<ProcessData> processes)
+        private List<SchedulingResult> RunLotteryAlgorithm(List<ProcessData> processes)
         {
             var results = new List<SchedulingResult>();
             var remainingProcesses = processes.ToDictionary(p => p.ProcessID, p => new ProcessData
@@ -1412,8 +1416,49 @@ Instructions:
             button.ForeColor = SystemColors.ControlText;
             button.FlatAppearance.MouseOverBackColor = Color.PaleGreen;
         }
+        /// <summary>
+        /// Executes the Shortest Remaining Time First algorithm using DataGrid data.
+        /// </summary>
+        private void SRTFButton_Click(object sender, EventArgs e)
+        {
+            var processData = GetProcessDataFromGrid();
+            if (processData.Count > 0)
+            {
+                var results = RunSRTFAlgorithm(processData);
+                DisplaySchedulingResults(results, "SRTF - Shortest Remaining Time First");
+                ShowPanel(resultsPanel);
+                sidePanel.Height = btnDashBoard.Height;
+                sidePanel.Top = btnDashBoard.Top;
+            }
+            else
+            {
+                MessageBox.Show("Please set process count and ensure the data grid has process data.", "No Process Data",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtProcess.Focus();
+            }
+        }
 
-
+        /// <summary>
+        /// Executes the Lottery Scheduling algorithm using DataGrid data.
+        /// </summary>
+        private void LotteryButton_Click(object sender, EventArgs e)
+        {
+            var processData = GetProcessDataFromGrid();
+            if (processData.Count > 0)
+            {
+                var results = RunLotteryAlgorithm(processData);
+                DisplaySchedulingResults(results, "Lottery Scheduling");
+                ShowPanel(resultsPanel);
+                sidePanel.Height = btnDashBoard.Height;
+                sidePanel.Top = btnDashBoard.Top;
+            }
+            else
+            {
+                MessageBox.Show("Please set process count and ensure the data grid has process data.", "No Process Data",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtProcess.Focus();
+            }
+        }
 
         /// <summary>
         /// Executes the Round Robin algorithm using DataGrid data.
